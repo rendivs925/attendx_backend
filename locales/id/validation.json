@@ -1,0 +1,37 @@
+{
+  "email": {
+    "at_before_dot": "'@' harus datang sebelum yang terakhir '.'",
+    "consecutive_dots": "Email tidak boleh berisi titik-titik berturut-turut",
+    "domain_starts_with_dot": "Bagian domain tidak boleh dimulai dengan sebuah titik",
+    "invalid": "Surel yang diberikan tak valid",
+    "invalid_chars": "Surel tidak boleh memuat karakter spasi atau bukan-ASCII",
+    "invalid_domain": "Bagian domain dari surel tidak valid",
+    "invalid_domain_length": "Bagian domain (setelah '@') harus memiliki setidaknya 2 karakter sebelum titik pertama",
+    "invalid_format": "Format surel tidak valid",
+    "invalid_tld": "TLD (setelah '.') terakhir harus paling tidak 2 karakter panjang dan alfabet",
+    "missing_at": "Email harus berisi simbol '@'",
+    "missing_domain": "Email harus memiliki bagian domain setelah '@'",
+    "missing_dot": "Email harus memuat a '.'",
+    "starts_or_ends_with_dot": "Surel tidak boleh dimulai atau diakhiri dengan sebuah titik",
+    "too_long": "Surel harus tidak lebih dari 254 karakter",
+    "too_short": "Surel harus paling tidak panjang 5 karakter"
+  },
+  "name": {
+    "empty": "Nama tidak boleh kosong",
+    "invalid": "Nama yang diberikan tak valid",
+    "invalid_chars": "Nama hanya boleh memuat huruf dan spasi",
+    "too_long": "Nama harus kurang dari 100 karakter",
+    "too_short": "Nama harus paling tidak panjang 2 karakter"
+  },
+  "password": {
+    "contains_space": "Sandi tak boleh memuat spasi",
+    "invalid": "Sandi yang diberikan tak valid",
+    "missing_lowercase": "Sandi harus berisi setidaknya satu huruf kecil",
+    "missing_number": "Sandi harus memuat paling tidak satu nomor",
+    "missing_special": "Kata sandi harus memuat paling tidak satu karakter khusus",
+    "missing_uppercase": "Sandi harus memuat setidaknya satu huruf besar",
+    "too_common": "Kata sandi terlalu umum",
+    "too_repetitive": "Kata sandi mengandung terlalu banyak karakter berulang",
+    "too_short": "Sandi harus paling tidak 8 karakter panjang"
+  }
+}

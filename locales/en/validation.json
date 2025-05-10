@@ -1,0 +1,37 @@
+{
+  "name": {
+    "empty": "Name must not be empty",
+    "too_short": "Name must be at least 2 characters long",
+    "too_long": "Name must be less than 100 characters",
+    "invalid_chars": "Name can only contain letters and spaces",
+    "invalid": "The provided name is invalid"
+  },
+  "email": {
+    "too_short": "Email must be at least 5 characters long",
+    "too_long": "Email must be no more than 254 characters",
+    "missing_at": "Email must contain the '@' symbol",
+    "missing_dot": "Email must contain a '.'",
+    "at_before_dot": "The '@' must come before the last '.'",
+    "invalid_chars": "Email must not contain spaces or non-ASCII characters",
+    "consecutive_dots": "Email must not contain consecutive dots",
+    "starts_or_ends_with_dot": "Email must not start or end with a dot",
+    "domain_starts_with_dot": "The domain part must not start with a dot",
+    "missing_domain": "Email must have a domain part after '@'",
+    "invalid_domain": "The domain part of the email is invalid",
+    "invalid_domain_length": "The domain part (after '@') must have at least 2 characters before the first dot",
+    "invalid_tld": "The TLD (after the last '.') must be at least 2 characters long and alphabetic",
+    "invalid_format": "Email format is invalid",
+    "invalid": "The provided email is invalid"
+  },
+  "password": {
+    "too_short": "Password must be at least 8 characters long",
+    "contains_space": "Password must not contain spaces",
+    "missing_uppercase": "Password must contain at least one uppercase letter",
+    "missing_lowercase": "Password must contain at least one lowercase letter",
+    "missing_number": "Password must contain at least one number",
+    "missing_special": "Password must contain at least one special character",
+    "too_common": "Password is too common",
+    "too_repetitive": "Password contains too many repetitive characters",
+    "invalid": "The provided password is invalid"
+  }
+}

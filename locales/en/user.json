@@ -1,0 +1,28 @@
+{
+  "create": {
+    "success": "User successfully created.",
+    "duplicate": "User with the same email already exists."
+  },
+  "fetch": {
+    "success": "User fetched successfully.",
+    "all_success": "Fetched all users successfully.",
+    "not_found": "User not found."
+  },
+  "update": {
+    "success": "User updated successfully."
+  },
+  "delete": {
+    "success": "User successfully deleted."
+  },
+  "auth": {
+    "invalid_credentials": "Invalid credentials."
+  },
+  "login": {
+    "success": "User logged in successfully.",
+    "error": "There was an error logging in. Please try again later.",
+    "invalid_credentials": "Incorrect email or password."
+  },
+  "logout": {
+    "success": "Successfully logged out."
+  }
+}
