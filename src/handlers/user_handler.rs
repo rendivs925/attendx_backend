@@ -44,15 +44,15 @@ fn validate_register_data(
 ) -> Result<(), validator::ValidationErrors> {
     let mut errors = ValidationErrors::new();
 
-    if let Err(e) = validate_name(&data.name, &messages) {
+    if let Err(e) = validate_name(&data.name, messages) {
         errors.add("name", e);
     }
 
-    if let Err(e) = validate_email(&data.email, &messages) {
+    if let Err(e) = validate_email(&data.email, messages) {
         errors.add("email", e);
     }
 
-    if let Err(e) = validate_password(&data.password, &messages) {
+    if let Err(e) = validate_password(&data.password, messages) {
         errors.add("password", e);
     }
 
@@ -69,11 +69,11 @@ fn validate_login_data(
 ) -> Result<(), validator::ValidationErrors> {
     let mut errors = ValidationErrors::new();
 
-    if let Err(e) = validate_email(&data.email, &messages) {
+    if let Err(e) = validate_email(&data.email, messages) {
         errors.add("email", e);
     }
 
-    if let Err(e) = validate_password(&data.password, &messages) {
+    if let Err(e) = validate_password(&data.password, messages) {
         errors.add("password", e);
     }
 
@@ -95,8 +95,8 @@ pub async fn create_user_handler(
 
     if let Err(errs) = validate_register_data(&data, &messages) {
         let err_msg = messages.get_str(
-            Namespace::User,         // Or Validation, depending on where the message is defined
-            "register.invalid_data", // Corrected key
+            Namespace::User,
+            "register.invalid_data",
             "Invalid registration data",
         );
         return handle_validation_error(errs, &err_msg);
@@ -185,7 +185,6 @@ pub async fn get_all_users_handler(
     let messages = Messages::new(lang);
 
     match user_service.get_all_users(&messages).await {
-        // Pass messages
         Ok(users) => HttpResponse::Ok().json(ApiResponse::success(
             messages.get_str(
                 Namespace::User,
@@ -207,7 +206,6 @@ pub async fn get_user_handler(
     let messages = Messages::new(lang);
 
     match user_service.get_user(&email, &messages).await {
-        // Pass messages
         Ok(Some(user)) => HttpResponse::Ok().json(ApiResponse::success(
             messages.get_str(
                 Namespace::User,
@@ -220,7 +218,7 @@ pub async fn get_user_handler(
             messages.get_str(
                 Namespace::User,
                 "fetch.not_found",
-                &format!("User not found: {}", &email), // Include email in default
+                &format!("User not found: {}", &email),
             ),
             ErrorDetails { details: None },
         )),
@@ -238,7 +236,7 @@ pub async fn update_user_handler(
     let messages = Messages::new(lang);
 
     match user_service
-        .update_user(&email, updated_user.into_inner(), &messages) // Pass messages
+        .update_user(&email, updated_user.into_inner(), &messages)
         .await
     {
         Ok(user) => HttpResponse::Ok().json(ApiResponse::success(
@@ -262,7 +260,6 @@ pub async fn delete_user_handler(
     let messages = Messages::new(lang);
 
     match user_service.delete_user(&email, &messages).await {
-        // Pass messages
         Ok(_) => HttpResponse::Ok().json(ApiResponse::success(
             messages.get_str(
                 Namespace::User,
