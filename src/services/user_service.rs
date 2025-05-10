@@ -7,12 +7,14 @@ use crate::{
             auth::register_request::RegisterRequest, user::update_user_request::UpdateUserRequest,
         },
     },
-    utils::auth_utils::{generate_jwt, hash_password, verify_password},
+    utils::{
+        auth_utils::{generate_jwt, hash_password, verify_password},
+        locale_utils::{Messages, Namespace},
+    },
 };
 use anyhow::{Context, Result, anyhow};
 use bson::oid::ObjectId;
 use chrono::Utc;
-use serde_json::Value;
 use std::{collections::HashSet, sync::Arc};
 
 pub struct UserService {
@@ -28,7 +30,7 @@ impl UserService {
         &self,
         email: &str,
         password: &str,
-        messages: &Value,
+        messages: &Messages,
     ) -> Result<(User, String)> {
         let user = self
             .user_repository
@@ -36,13 +38,7 @@ impl UserService {
             .await
             .context(format!("User with email '{}' not found", email))?
             .ok_or_else(|| {
-                anyhow!(
-                    messages
-                        .get("fetch.not_found")
-                        .and_then(Value::as_str)
-                        .map(String::from)
-                        .unwrap_or_else(|| "User not found".to_string())
-                )
+                anyhow!(messages.get_str(Namespace::User, "fetch.not_found", "User not found",))
             })?;
 
         if !verify_password(password, &user.password).map_err(|err| {
@@ -52,13 +48,11 @@ impl UserService {
                 err
             )
         })? {
-            return Err(anyhow!(
-                messages
-                    .get("auth.invalid_credentials")
-                    .and_then(Value::as_str)
-                    .map(String::from)
-                    .unwrap_or_else(|| "Invalid credentials".to_string())
-            ));
+            return Err(anyhow!(messages.get_str(
+                Namespace::User,
+                "auth.invalid_credentials",
+                "Invalid credentials",
+            )));
         }
 
         let token = generate_jwt(&user.name, email)
@@ -68,7 +62,11 @@ impl UserService {
         Ok((user, token))
     }
 
-    pub async fn create_user(&self, new_user: RegisterRequest, messages: &Value) -> Result<User> {
+    pub async fn create_user(
+        &self,
+        new_user: RegisterRequest,
+        messages: &Messages,
+    ) -> Result<User> {
         if let Some(_existing) = self
             .user_repository
             .find_user("email", new_user.email.as_str())
@@ -78,13 +76,11 @@ impl UserService {
                 new_user.email
             ))?
         {
-            return Err(anyhow!(
-                messages
-                    .get("create.duplicate")
-                    .and_then(Value::as_str)
-                    .map(String::from)
-                    .unwrap_or_else(|| "Duplicate email or phone number".to_string())
-            )
+            return Err(anyhow!(messages.get_str(
+                Namespace::User,
+                "create.duplicate",
+                "Duplicate email or phone number",
+            ))
             .context("Duplicate email or phone number"));
         }
 
@@ -112,41 +108,25 @@ impl UserService {
         };
 
         self.user_repository.create_user(&user).await.map_err(|e| {
-            anyhow!(
-                messages
-                    .get("create.success")
-                    .and_then(Value::as_str)
-                    .map(String::from)
-                    .unwrap_or_else(|| "DB insert failed".to_string())
-            )
-            .context(format!("DB insert failed: {}", e))
+            anyhow!(messages.get_str(Namespace::User, "create.success", "DB insert failed",))
+                .context(format!("DB insert failed: {}", e))
         })
     }
 
-    pub async fn get_all_users(&self, messages: &Value) -> Result<Vec<User>> {
+    pub async fn get_all_users(&self, messages: &Messages) -> Result<Vec<User>> {
         self.user_repository.get_all_users().await.map_err(|e| {
-            anyhow!(
-                messages
-                    .get("fetch.all_success")
-                    .and_then(Value::as_str)
-                    .map(String::from)
-                    .unwrap_or_else(|| "Error fetching users".to_string())
-            )
-            .context(format!("Error fetching users: {}", e))
+            anyhow!(messages.get_str(Namespace::User, "fetch.all_success", "Error fetching users",))
+                .context(format!("Error fetching users: {}", e))
         })
     }
 
-    pub async fn get_user(&self, email: &str, messages: &Value) -> Result<Option<User>> {
+    pub async fn get_user(&self, email: &str, messages: &Messages) -> Result<Option<User>> {
         self.user_repository
             .find_user("email", email)
             .await
             .map_err(|e| {
                 anyhow!(
-                    messages
-                        .get("fetch.success")
-                        .and_then(Value::as_str)
-                        .map(String::from)
-                        .unwrap_or_else(|| "Error retrieving user".to_string())
+                    messages.get_str(Namespace::User, "fetch.success", "Error retrieving user",)
                 )
                 .context(format!("Error retrieving user: {}", e))
             })
@@ -156,33 +136,21 @@ impl UserService {
         &self,
         email: &str,
         user: UpdateUserRequest,
-        messages: &Value,
+        messages: &Messages,
     ) -> Result<UpdateUserRequest> {
         self.user_repository
             .update_user(email, user)
             .await
             .map_err(|e| {
-                anyhow!(
-                    messages
-                        .get("update.success")
-                        .and_then(Value::as_str)
-                        .map(String::from)
-                        .unwrap_or_else(|| "Error updating user".to_string())
-                )
-                .context(format!("Error updating user: {}", e))
+                anyhow!(messages.get_str(Namespace::User, "update.success", "Error updating user",))
+                    .context(format!("Error updating user: {}", e))
             })
     }
 
-    pub async fn delete_user(&self, email: &str, messages: &Value) -> Result<()> {
+    pub async fn delete_user(&self, email: &str, messages: &Messages) -> Result<()> {
         self.user_repository.delete_user(email).await.map_err(|e| {
-            anyhow!(
-                messages
-                    .get("delete.success")
-                    .and_then(Value::as_str)
-                    .map(String::from)
-                    .unwrap_or_else(|| "Error deleting user".to_string())
-            )
-            .context(format!("Error deleting user: {}", e))
+            anyhow!(messages.get_str(Namespace::User, "delete.success", "Error deleting user",))
+                .context(format!("Error deleting user: {}", e))
         })
     }
 }

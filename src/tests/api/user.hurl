@@ -4,8 +4,8 @@ Content-Type: application/json
 Accept-Language: de
 
 {
-    "email": "h1@gmail.com",
-    "password": "Securepassword123."
+    "email": "h1@gmail.c",
+    "password": "Securepsword123"
 }
 
 # Test Logout API with Language Header

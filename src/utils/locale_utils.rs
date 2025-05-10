@@ -52,6 +52,21 @@ fn load_message_file(lang: Lang, namespace: &str) -> Value {
     }
 }
 
+#[derive(Debug, Clone)]
+pub enum Namespace {
+    Validation,
+    User,
+}
+
+impl Namespace {
+    fn as_str(&self) -> &'static str {
+        match self {
+            Namespace::Validation => "validation",
+            Namespace::User => "user",
+        }
+    }
+}
+
 #[derive(Debug)]
 pub struct Messages {
     pub user: Value,
@@ -66,14 +81,10 @@ impl Messages {
         }
     }
 
-    pub fn get(&self, namespace: &str, path: &str) -> Option<&Value> {
+    pub fn get(&self, namespace: &Namespace, path: &str) -> Option<&Value> {
         let root = match namespace {
-            "user" => &self.user,
-            "validation" => &self.validation,
-            _ => {
-                eprintln!("[WARN] Unknown namespace: {}", namespace);
-                return None;
-            }
+            Namespace::User => &self.user,
+            Namespace::Validation => &self.validation,
         };
 
         let mut current = root;
@@ -85,25 +96,36 @@ impl Messages {
                 None => {
                     eprintln!(
                         "[DEBUG] Key '{}' not found in path '{}.{}'",
-                        key, namespace, path
+                        key,
+                        namespace.as_str(),
+                        path
                     );
                     return None;
                 }
             }
         }
 
-        println!("[DEBUG] Found message for '{}.{}'", namespace, path);
+        println!(
+            "[DEBUG] Found message for '{}.{}'",
+            namespace.as_str(),
+            path
+        );
         Some(current)
     }
 
-    pub fn get_str(&self, namespace: &str, path: &str, fallback: &str) -> String {
+    pub fn get_str(&self, namespace: Namespace, path: &str, fallback: &str) -> String {
         let result = self
-            .get(namespace, path)
+            .get(&namespace, path)
             .and_then(Value::as_str)
             .unwrap_or(fallback)
             .to_string();
 
-        log::debug!("🔍 Accessed message [{}::{}]: {}", namespace, path, result);
+        log::debug!(
+            "🔍 Accessed message [{}::{}]: {}",
+            namespace.as_str(),
+            path,
+            result
+        );
         result
     }
 }
