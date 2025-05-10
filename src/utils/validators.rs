@@ -108,7 +108,7 @@ pub fn validate_email(email: &str, messages: &Messages) -> Result<(), Validation
     if contains_invalid_chars(email) {
         let msg = messages.get_str(
             Namespace::Validation,
-            "invalid_chars",
+            "email.invalid_chars",
             "Email must not contain spaces or non-ASCII characters",
         );
         errors.push(msg);
@@ -117,7 +117,7 @@ pub fn validate_email(email: &str, messages: &Messages) -> Result<(), Validation
     if contains_consecutive_dots(email) {
         let msg = messages.get_str(
             Namespace::Validation,
-            "consecutive_dots",
+            "email.consecutive_dots",
             "Email must not contain consecutive dots",
         );
         errors.push(msg);
@@ -126,7 +126,7 @@ pub fn validate_email(email: &str, messages: &Messages) -> Result<(), Validation
     if starts_or_ends_with_dot(email) {
         let msg = messages.get_str(
             Namespace::Validation,
-            "starts_or_ends_with_dot",
+            "email.starts_or_ends_with_dot",
             "Email must not start or end with a dot",
         );
         errors.push(msg);
@@ -135,7 +135,7 @@ pub fn validate_email(email: &str, messages: &Messages) -> Result<(), Validation
     if domain_starts_with_dot(email) {
         let msg = messages.get_str(
             Namespace::Validation,
-            "domain_starts_with_dot",
+            "email.domain_starts_with_dot",
             "The domain part must not start with a dot",
         );
         errors.push(msg);
@@ -145,7 +145,7 @@ pub fn validate_email(email: &str, messages: &Messages) -> Result<(), Validation
         if !is_valid_domain(domain) {
             let msg = messages.get_str(
                 Namespace::Validation,
-                "invalid_domain",
+                "email.invalid_domain",
                 "The domain part of the email is invalid",
             );
             errors.push(msg);
@@ -153,7 +153,7 @@ pub fn validate_email(email: &str, messages: &Messages) -> Result<(), Validation
         if !has_valid_domain_length(domain) {
             let msg = messages.get_str(
                 Namespace::Validation,
-                "invalid_domain_length",
+                "email.invalid_domain_length",
                 "The domain part (after '@') must have at least 2 characters before the first dot",
             );
             errors.push(msg);
@@ -161,7 +161,7 @@ pub fn validate_email(email: &str, messages: &Messages) -> Result<(), Validation
         if !has_valid_tld(domain) {
             let msg = messages.get_str(
                 Namespace::Validation,
-                "invalid_tld",
+                "email.invalid_tld",
                 "The TLD (after the last '.') must be at least 2 characters long and alphabetic",
             );
             errors.push(msg);
@@ -169,7 +169,7 @@ pub fn validate_email(email: &str, messages: &Messages) -> Result<(), Validation
     } else {
         let msg = messages.get_str(
             Namespace::Validation,
-            "missing_domain",
+            "email.missing_domain",
             "Email must have a domain part after '@'",
         );
         errors.push(msg);
@@ -178,7 +178,7 @@ pub fn validate_email(email: &str, messages: &Messages) -> Result<(), Validation
     if errors.is_empty() && !EmailAddress::is_valid(email) {
         let msg = messages.get_str(
             Namespace::Validation,
-            "invalid_format",
+            "email.invalid",
             "Invalid email format",
         );
         errors.push(msg);
@@ -186,12 +186,7 @@ pub fn validate_email(email: &str, messages: &Messages) -> Result<(), Validation
 
     if !errors.is_empty() {
         let concatenated_errors = errors.join(", ");
-        let default_message = messages.get_str(
-            Namespace::Validation,
-            "invalid",
-            &format!("The provided email is invalid ({})", concatenated_errors),
-        );
-        return Err(add_error("email.invalid", default_message, email));
+        return Err(add_error("email.invalid", concatenated_errors, email));
     }
 
     Ok(())

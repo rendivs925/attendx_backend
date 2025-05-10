@@ -22,6 +22,9 @@
   "logout": {
     "success": "Erfolgreich ausgeloggt."
   },
+  "register": {
+    "invalid_data": "Invalide Registrierungsdaten"
+  },
   "update": {
     "success": "Benutzer erfolgreich aktualisiert."
   }

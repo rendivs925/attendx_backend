@@ -22,6 +22,9 @@
   "logout": {
     "success": "Berhasil log out."
   },
+  "register": {
+    "invalid_data": "Data registrasi tidak valid"
+  },
   "update": {
     "success": "Pengguna telah diperbarui dengan sukses."
   }

@@ -28,8 +28,8 @@
     "contains_space": "Password must not contain spaces",
     "missing_uppercase": "Password must contain at least one uppercase letter",
     "missing_lowercase": "Password must contain at least one lowercase letter",
-    "missing_number": "Password must contain at least one number",
-    "missing_special": "Password must contain at least one special character",
+    "missing_digit": "Password must contain at least one digit",
+    "missing_special_char": "Password must contain at least one special character",
     "too_common": "Password is too common",
     "too_repetitive": "Password contains too many repetitive characters",
     "invalid": "The provided password is invalid"

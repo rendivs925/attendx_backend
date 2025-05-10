@@ -22,6 +22,9 @@
   "logout": {
     "success": "うまくログアウトしました."
   },
+  "register": {
+    "invalid_data": "無効な登録データ"
+  },
   "update": {
     "success": "ユーザーが正常に更新しました."
   }

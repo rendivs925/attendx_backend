@@ -24,5 +24,8 @@
   },
   "logout": {
     "success": "Successfully logged out."
+  },
+  "register": {
+    "invalid_data": "Invalid registration data"
   }
 }

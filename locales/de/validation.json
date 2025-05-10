@@ -26,9 +26,9 @@
   "password": {
     "contains_space": "Passwort darf keine Leerzeichen enthalten",
     "invalid": "Das bereitgestellte Passwort ist ungültig",
+    "missing_digit": "Passwort muss mindestens eine Ziffer enthalten",
     "missing_lowercase": "Passwort muss mindestens einen Kleinbuchstaben enthalten",
-    "missing_number": "Passwort muss mindestens eine Nummer enthalten",
-    "missing_special": "Passwort muss mindestens ein besonderes Zeichen enthalten",
+    "missing_special_char": "Passwort muss mindestens ein besonderes Zeichen enthalten",
     "missing_uppercase": "Passwort muss mindestens einen Großbuchstaben enthalten",
     "too_common": "Passwort ist zu häufig",
     "too_repetitive": "Passwort enthält zu viele Wiederholungszeichen",

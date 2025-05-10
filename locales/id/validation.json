@@ -26,9 +26,9 @@
   "password": {
     "contains_space": "Sandi tak boleh memuat spasi",
     "invalid": "Sandi yang diberikan tak valid",
+    "missing_digit": "Sandi harus memuat paling tidak satu digit",
     "missing_lowercase": "Sandi harus berisi setidaknya satu huruf kecil",
-    "missing_number": "Sandi harus memuat paling tidak satu nomor",
-    "missing_special": "Kata sandi harus memuat paling tidak satu karakter khusus",
+    "missing_special_char": "Kata sandi harus memuat paling tidak satu karakter khusus",
     "missing_uppercase": "Sandi harus memuat setidaknya satu huruf besar",
     "too_common": "Kata sandi terlalu umum",
     "too_repetitive": "Kata sandi mengandung terlalu banyak karakter berulang",
