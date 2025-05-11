@@ -7,7 +7,7 @@ use crate::{
     services::user_service::UserService,
     types::{
         requests::auth::{login_request::LoginRequest, register_request::RegisterRequest},
-        responses::api_response::{ApiResponse, ErrorDetails},
+        responses::api_response::ApiResponse,
     },
     utils::{
         auth_utils::generate_cookie,
@@ -70,10 +70,9 @@ pub async fn jwt_login_handler(
                 user,
             ))
         }
-        Err(err) => HttpResponse::Unauthorized().json(ApiResponse::<()>::error(
-            err.to_string(),
-            ErrorDetails { details: None },
-        )),
+        Err(err) => {
+            HttpResponse::Unauthorized().json(ApiResponse::<()>::error(err.to_string(), None))
+        }
     }
 }
 

@@ -49,8 +49,8 @@ impl UserService {
             )
         })? {
             return Err(anyhow!(messages.get_str(
-                Namespace::User,
-                "auth.invalid_credentials",
+                Namespace::Auth,
+                "login.invalid_credentials",
                 "Invalid credentials",
             )));
         }
@@ -77,11 +77,10 @@ impl UserService {
             ))?
         {
             return Err(anyhow!(messages.get_str(
-                Namespace::User,
+                Namespace::Auth,
                 "register.duplicate",
-                "Duplicate email",
-            ))
-            .context("Duplicate email"));
+                "",
+            )));
         }
 
         let hashed_password = hash_password(&new_user.password).map_err(|e| {
@@ -111,7 +110,7 @@ impl UserService {
             .register_user(&user)
             .await
             .map_err(|e| {
-                anyhow!(messages.get_str(Namespace::User, "register.success", "DB insert failed",))
+                anyhow!(messages.get_str(Namespace::Auth, "register.success", "DB insert failed",))
                     .context(format!("DB insert failed: {}", e))
             })
     }

@@ -12,7 +12,7 @@ Accept-Language: de
 
 POST http://localhost:8000/auth/register
 Content-Type: application/json
-Accept-Language: de
+Accept-Language: ja
 
 {
   "name": "user",

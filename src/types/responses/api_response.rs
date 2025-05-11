@@ -3,6 +3,7 @@ use serde_json::Value;
 
 #[derive(Serialize, Deserialize)]
 pub struct ErrorDetails {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub details: Option<Value>,
 }
 
@@ -24,10 +25,10 @@ impl<T> ApiResponse<T> {
         }
     }
 
-    pub fn error(message: impl Into<String>, error: ErrorDetails) -> Self {
+    pub fn error(message: impl Into<String>, error: Option<ErrorDetails>) -> Self {
         ApiResponse {
             message: message.into(),
-            error: Some(error),
+            error,
             data: None,
         }
     }

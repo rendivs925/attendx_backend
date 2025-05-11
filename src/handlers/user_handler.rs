@@ -6,7 +6,7 @@ use crate::{
     services::user_service::UserService,
     types::{
         requests::user::update_user_request::UpdateUserRequest,
-        responses::api_response::{ApiResponse, ErrorDetails},
+        responses::api_response::ApiResponse,
     },
     utils::{
         locale_utils::{Messages, get_lang},
@@ -45,7 +45,7 @@ pub async fn get_user_handler(
         )),
         Ok(None) => HttpResponse::NotFound().json(ApiResponse::<()>::error(
             messages.get_user_message("fetch.not_found", &format!("User not found: {}", &email)),
-            ErrorDetails { details: None },
+            None,
         )),
         Err(err) => handle_internal_error(err),
     }

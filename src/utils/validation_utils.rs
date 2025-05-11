@@ -14,13 +14,11 @@ pub fn handle_validation_error(errors: ValidationErrors, msg: &str) -> HttpRespo
     let error_details = ErrorDetails {
         details: Some(json!(&errors)),
     };
-    HttpResponse::BadRequest().json(ApiResponse::<()>::error(msg, error_details))
+    HttpResponse::BadRequest().json(ApiResponse::<()>::error(msg, Some(error_details)))
 }
 
 pub fn handle_internal_error(err: impl ToString) -> HttpResponse {
-    let error_details = ErrorDetails { details: None };
-    HttpResponse::InternalServerError()
-        .json(ApiResponse::<()>::error(err.to_string(), error_details))
+    HttpResponse::InternalServerError().json(ApiResponse::<()>::error(err.to_string(), None))
 }
 
 pub fn validate_register_data(
