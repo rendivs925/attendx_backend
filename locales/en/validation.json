@@ -25,6 +25,7 @@
   },
   "password": {
     "too_short": "Password must be at least 8 characters long",
+    "too_long": "Password must be no more than 128 characters long",
     "contains_space": "Password must not contain spaces",
     "missing_uppercase": "Password must contain at least one uppercase letter",
     "missing_lowercase": "Password must contain at least one lowercase letter",

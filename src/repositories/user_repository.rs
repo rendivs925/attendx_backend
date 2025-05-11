@@ -18,7 +18,7 @@ impl UserRepository {
         Ok(Self { collection })
     }
 
-    pub async fn create_user(&self, user: &User) -> Result<User> {
+    pub async fn register_user(&self, user: &User) -> Result<User> {
         self.collection.insert_one(user).await?;
         Ok(User { ..user.clone() })
     }

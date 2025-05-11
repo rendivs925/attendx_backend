@@ -7,7 +7,7 @@ pub enum Lang {
     En,
     Id,
     De,
-    Jp,
+    Ja,
 }
 
 impl Lang {
@@ -15,7 +15,7 @@ impl Lang {
         match code.to_ascii_lowercase().as_str() {
             "id" => Self::Id,
             "de" => Self::De,
-            "jp" => Self::Jp,
+            "ja" => Self::Ja,
             "en" => Self::En,
             _ => Self::En,
         }
@@ -27,7 +27,7 @@ fn load_message_file(lang: Lang, namespace: &str) -> Value {
         Lang::En => "en",
         Lang::De => "de",
         Lang::Id => "id",
-        Lang::Jp => "ja",
+        Lang::Ja => "ja",
     };
 
     let file_path = Path::new("locales")
@@ -36,10 +36,7 @@ fn load_message_file(lang: Lang, namespace: &str) -> Value {
 
     match fs::read_to_string(&file_path) {
         Ok(content) => match serde_json::from_str(&content) {
-            Ok(json) => {
-                println!("[DEBUG] Loaded messages from {:?}", file_path);
-                json
-            }
+            Ok(json) => json,
             Err(err) => {
                 eprintln!("[ERROR] Failed to parse JSON from {:?}: {}", file_path, err);
                 Value::Null
@@ -56,21 +53,14 @@ fn load_message_file(lang: Lang, namespace: &str) -> Value {
 pub enum Namespace {
     Validation,
     User,
-}
-
-impl Namespace {
-    fn as_str(&self) -> &'static str {
-        match self {
-            Namespace::Validation => "validation",
-            Namespace::User => "user",
-        }
-    }
+    Auth,
 }
 
 #[derive(Debug)]
 pub struct Messages {
     pub user: Value,
     pub validation: Value,
+    pub auth: Value,
 }
 
 impl Messages {
@@ -78,6 +68,7 @@ impl Messages {
         Self {
             user: load_message_file(lang, "user"),
             validation: load_message_file(lang, "validation"),
+            auth: load_message_file(lang, "auth"),
         }
     }
 
@@ -85,6 +76,7 @@ impl Messages {
         let root = match namespace {
             Namespace::User => &self.user,
             Namespace::Validation => &self.validation,
+            Namespace::Auth => &self.auth,
         };
 
         let mut current = root;
@@ -94,22 +86,11 @@ impl Messages {
                     current = next;
                 }
                 None => {
-                    eprintln!(
-                        "[DEBUG] Key '{}' not found in path '{}.{}'",
-                        key,
-                        namespace.as_str(),
-                        path
-                    );
                     return None;
                 }
             }
         }
 
-        println!(
-            "[DEBUG] Found message for '{}.{}'",
-            namespace.as_str(),
-            path
-        );
         Some(current)
     }
 
@@ -120,13 +101,19 @@ impl Messages {
             .unwrap_or(fallback)
             .to_string();
 
-        log::debug!(
-            "🔍 Accessed message [{}::{}]: {}",
-            namespace.as_str(),
-            path,
-            result
-        );
         result
+    }
+
+    pub fn get_user_message(&self, key: &str, default: &str) -> String {
+        self.get_str(Namespace::User, key, default)
+    }
+
+    pub fn get_auth_message(&self, key: &str, default: &str) -> String {
+        self.get_str(Namespace::Auth, key, default)
+    }
+
+    pub fn get_validation_message(&self, key: &str, default: &str) -> String {
+        self.get_str(Namespace::Validation, key, default)
     }
 }
 

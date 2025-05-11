@@ -1,11 +1,4 @@
 {
-  "auth": {
-    "invalid_credentials": "無効な資格情報."
-  },
-  "create": {
-    "duplicate": "既に同じメールを持つユーザが存在します.",
-    "success": "ユーザーが正常に作成しました."
-  },
   "delete": {
     "success": "ユーザーが正常に削除しました."
   },
@@ -13,17 +6,6 @@
     "all_success": "すべてのユーザーが正常に取得しました.",
     "not_found": "ユーザーが見つかりません.",
     "success": "ユーザは正常に取得しました."
-  },
-  "login": {
-    "error": "エラーロギングがありました。 もう一度お試しください.",
-    "invalid_credentials": "電子メールやパスワードが間違っています.",
-    "success": "正常にログインしたユーザー."
-  },
-  "logout": {
-    "success": "うまくログアウトしました."
-  },
-  "register": {
-    "invalid_data": "無効な登録データ"
   },
   "update": {
     "success": "ユーザーが正常に更新しました."

@@ -1,16 +1,16 @@
-POST http://localhost:8000/login
+POST http://localhost:8000/auth/login
 Content-Type: application/json
-Accept-Language: jp
+Accept-Language: ja
 
 {
-    "email": "h1gmail.c",
-    "password": "secur3"
+  "email": "h1@gmail.com",
+  "password": "Securepassword123."
 }
 
-DELETE http://localhost:8000/logout
+DELETE http://localhost:8000/auth/logout
 Accept-Language: de
 
-POST http://localhost:8000/users/new
+POST http://localhost:8000/auth/register
 Content-Type: application/json
 Accept-Language: de
 
@@ -32,7 +32,7 @@ Accept-Language: de
 
 PUT http://localhost:8000/users/h1@gmail.com
 Content-Type: application/json
-Accept-Language: jp
+Accept-Language: ja
 
 {
   "name": "updatedUser1",

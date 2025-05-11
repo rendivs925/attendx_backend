@@ -6,7 +6,6 @@ use std::{
     fs,
     path::{Path, PathBuf},
 };
-use tokio;
 
 const TARGET_LANGS: [&str; 3] = ["de", "id", "ja"];
 const SOURCE_DIR: &str = "locales/en";

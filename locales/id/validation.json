@@ -31,6 +31,7 @@
     "missing_special_char": "Kata sandi harus memuat paling tidak satu karakter khusus",
     "missing_uppercase": "Sandi harus memuat setidaknya satu huruf besar",
     "too_common": "Kata sandi terlalu umum",
+    "too_long": "Sandi harus tidak lebih dari 128 karakter panjang",
     "too_repetitive": "Kata sandi mengandung terlalu banyak karakter berulang",
     "too_short": "Sandi harus paling tidak 8 karakter panjang"
   }

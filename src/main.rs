@@ -7,7 +7,6 @@ use attendx_backend::{
     setup::{database::setup_database, services::setup_services},
 };
 use dotenv::dotenv;
-use env_logger;
 use log::info;
 use shuttle_actix_web::ShuttleActixWeb;
 

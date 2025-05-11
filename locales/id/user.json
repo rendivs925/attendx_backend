@@ -1,11 +1,4 @@
 {
-  "auth": {
-    "invalid_credentials": "Kredensial tidak valid."
-  },
-  "create": {
-    "duplicate": "Pengguna dengan email yang sama sudah ada.",
-    "success": "Pengguna berhasil dibuat."
-  },
   "delete": {
     "success": "Pengguna berhasil dihapus."
   },
@@ -13,17 +6,6 @@
     "all_success": "Mengambil semua pengguna dengan sukses.",
     "not_found": "Pengguna tidak ditemukan.",
     "success": "Pengguna sukses diambil."
-  },
-  "login": {
-    "error": "Ada kesalahan saat masuk. Silakan coba lagi nanti.",
-    "invalid_credentials": "Email atau kata sandi tidak benar.",
-    "success": "Pengguna berhasil log masuk."
-  },
-  "logout": {
-    "success": "Berhasil log out."
-  },
-  "register": {
-    "invalid_data": "Data registrasi tidak valid"
   },
   "update": {
     "success": "Pengguna telah diperbarui dengan sukses."

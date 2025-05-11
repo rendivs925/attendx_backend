@@ -62,7 +62,7 @@ impl UserService {
         Ok((user, token))
     }
 
-    pub async fn create_user(
+    pub async fn register_user(
         &self,
         new_user: RegisterRequest,
         messages: &Messages,
@@ -78,10 +78,10 @@ impl UserService {
         {
             return Err(anyhow!(messages.get_str(
                 Namespace::User,
-                "create.duplicate",
-                "Duplicate email or phone number",
+                "register.duplicate",
+                "Duplicate email",
             ))
-            .context("Duplicate email or phone number"));
+            .context("Duplicate email"));
         }
 
         let hashed_password = hash_password(&new_user.password).map_err(|e| {
@@ -107,10 +107,13 @@ impl UserService {
             updated_at: now,
         };
 
-        self.user_repository.create_user(&user).await.map_err(|e| {
-            anyhow!(messages.get_str(Namespace::User, "create.success", "DB insert failed",))
-                .context(format!("DB insert failed: {}", e))
-        })
+        self.user_repository
+            .register_user(&user)
+            .await
+            .map_err(|e| {
+                anyhow!(messages.get_str(Namespace::User, "register.success", "DB insert failed",))
+                    .context(format!("DB insert failed: {}", e))
+            })
     }
 
     pub async fn get_all_users(&self, messages: &Messages) -> Result<Vec<User>> {
