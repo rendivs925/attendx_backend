@@ -1,5 +1,7 @@
 use actix_web::HttpResponse;
+use rayon::prelude::*;
 use serde_json::json;
+use std::sync::{Arc, Mutex};
 use std::{borrow::Cow, collections::HashMap};
 use validator::{ValidationError, ValidationErrors};
 
@@ -9,6 +11,33 @@ use crate::{
     utils::locale_utils::Messages,
     validations::{email::validate_email, name::validate_name, password::validate_password},
 };
+
+type FieldValidation<'a> = (
+    &'static str,
+    &'a str,
+    fn(&'a str, &Messages) -> Result<(), ValidationError>,
+);
+
+pub fn validate_fields(
+    fields: Vec<FieldValidation>,
+    messages: &Messages,
+) -> Result<(), ValidationErrors> {
+    let errors = Arc::new(Mutex::new(ValidationErrors::new()));
+
+    fields.par_iter().for_each(|(field, value, validator)| {
+        if let Err(error) = validator(value, messages) {
+            let mut errors_lock = errors.lock().unwrap();
+            errors_lock.add(field, error);
+        }
+    });
+
+    let errors_lock = errors.lock().unwrap();
+    if errors_lock.errors().is_empty() {
+        Ok(())
+    } else {
+        Err(errors_lock.clone())
+    }
+}
 
 pub fn handle_validation_error(errors: ValidationErrors, msg: &str) -> HttpResponse {
     let error_details = ErrorDetails {
@@ -25,43 +54,27 @@ pub fn validate_register_data(
     data: &RegisterRequest,
     messages: &Messages,
 ) -> Result<(), ValidationErrors> {
-    let mut errors = ValidationErrors::new();
-
-    if let Err(e) = validate_name(&data.name, messages) {
-        errors.add("name", e);
-    }
-    if let Err(e) = validate_email(&data.email, messages) {
-        errors.add("email", e);
-    }
-    if let Err(e) = validate_password(&data.password, messages) {
-        errors.add("password", e);
-    }
-
-    if errors.errors().is_empty() {
-        Ok(())
-    } else {
-        Err(errors)
-    }
+    validate_fields(
+        vec![
+            ("name", &data.name, validate_name),
+            ("email", &data.email, validate_email),
+            ("password", &data.password, validate_password),
+        ],
+        messages,
+    )
 }
 
 pub fn validate_login_data(
     data: &LoginRequest,
     messages: &Messages,
 ) -> Result<(), ValidationErrors> {
-    let mut errors = ValidationErrors::new();
-
-    if let Err(e) = validate_email(&data.email, messages) {
-        errors.add("email", e);
-    }
-    if let Err(e) = validate_password(&data.password, messages) {
-        errors.add("password", e);
-    }
-
-    if errors.errors().is_empty() {
-        Ok(())
-    } else {
-        Err(errors)
-    }
+    validate_fields(
+        vec![
+            ("email", &data.email, validate_email),
+            ("password", &data.password, validate_password),
+        ],
+        messages,
+    )
 }
 
 pub fn add_error(code: &'static str, message: String, field_value: &str) -> ValidationError {

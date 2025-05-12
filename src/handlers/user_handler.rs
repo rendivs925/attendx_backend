@@ -1,7 +1,6 @@
 use std::sync::Arc;
 
 use actix_web::{HttpRequest, HttpResponse, web};
-use validator::ValidationErrors;
 
 use crate::{
     services::user_service::UserService,
@@ -11,7 +10,7 @@ use crate::{
     },
     utils::{
         locale_utils::{Messages, get_lang},
-        validation_utils::handle_internal_error,
+        validation_utils::{handle_internal_error, handle_validation_error, validate_fields},
     },
     validations::email::validate_email,
 };
@@ -40,10 +39,9 @@ pub async fn get_user_handler(
     let lang = get_lang(&req);
     let messages = Messages::new(lang);
 
-    let mut errors = ValidationErrors::new();
-
-    if let Err(e) = validate_email(&email, &messages) {
-        errors.add("email", e);
+    if let Err(errs) = validate_fields(vec![("email", &email, validate_email)], &messages) {
+        let msg = messages.get_auth_message("email.invalid", "Invalid email format.");
+        return handle_validation_error(errs, &msg);
     }
 
     match user_service.get_user(&email, &messages).await {
@@ -68,6 +66,11 @@ pub async fn update_user_handler(
     let lang = get_lang(&req);
     let messages = Messages::new(lang);
 
+    if let Err(errs) = validate_fields(vec![("email", &email, validate_email)], &messages) {
+        let msg = messages.get_auth_message("email.invalid", "Invalid email format.");
+        return handle_validation_error(errs, &msg);
+    }
+
     match user_service
         .update_user(&email, updated_user.into_inner(), &messages)
         .await
@@ -87,6 +90,11 @@ pub async fn delete_user_handler(
 ) -> HttpResponse {
     let lang = get_lang(&req);
     let messages = Messages::new(lang);
+
+    if let Err(errs) = validate_fields(vec![("email", &email, validate_email)], &messages) {
+        let msg = messages.get_auth_message("email.invalid", "Invalid email format.");
+        return handle_validation_error(errs, &msg);
+    }
 
     match user_service.delete_user(&email, &messages).await {
         Ok(_) => HttpResponse::Ok().json(ApiResponse::success(
