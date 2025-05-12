@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use actix_web::{HttpRequest, HttpResponse, web};
+use validator::ValidationErrors;
 
 use crate::{
     services::user_service::UserService,
@@ -12,6 +13,7 @@ use crate::{
         locale_utils::{Messages, get_lang},
         validation_utils::handle_internal_error,
     },
+    validations::email::validate_email,
 };
 
 pub async fn get_all_users_handler(
@@ -37,6 +39,12 @@ pub async fn get_user_handler(
 ) -> HttpResponse {
     let lang = get_lang(&req);
     let messages = Messages::new(lang);
+
+    let mut errors = ValidationErrors::new();
+
+    if let Err(e) = validate_email(&email, &messages) {
+        errors.add("email", e);
+    }
 
     match user_service.get_user(&email, &messages).await {
         Ok(Some(user)) => HttpResponse::Ok().json(ApiResponse::success(

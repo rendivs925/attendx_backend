@@ -1,10 +1,7 @@
 use rayon::prelude::*;
 use validator::ValidationError;
 
-use crate::{
-    types::validations::ValidationFn,
-    utils::{locale_utils::Messages, validation_utils::add_error},
-};
+use crate::utils::{locale_utils::Messages, validation_utils::add_error};
 
 const MIN_NAME_LENGTH: usize = 2;
 const MAX_NAME_LENGTH: usize = 100;
@@ -51,26 +48,25 @@ fn has_valid_chars(name: &str, messages: &Messages) -> Result<(), String> {
 }
 
 pub fn validate_name(name: &str, messages: &Messages) -> Result<(), ValidationError> {
-    let validations: Vec<ValidationFn> = vec![
-        ValidationFn(is_not_empty),
-        ValidationFn(has_min_length),
-        ValidationFn(has_max_length),
-        ValidationFn(has_valid_chars),
+    let validations = [
+        is_not_empty,
+        has_min_length,
+        has_max_length,
+        has_valid_chars,
     ];
 
     let errors: Vec<String> = validations
         .par_iter()
-        .filter_map(|validate_fn| validate_fn.0(name, messages).err())
+        .filter_map(|f| f(name, messages).err())
         .collect();
 
-    if !errors.is_empty() {
-        let concatenated_errors = errors.join(", ");
-        let default_message = messages.get_validation_message(
+    if errors.is_empty() {
+        Ok(())
+    } else {
+        let message = messages.get_validation_message(
             "name.invalid",
-            &format!("The provided name is invalid ({})", concatenated_errors),
+            &format!("The provided name is invalid ({})", errors.join(", ")),
         );
-        return Err(add_error("name.invalid", default_message, name));
+        Err(add_error("name.invalid", message, name))
     }
-
-    Ok(())
 }

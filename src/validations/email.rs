@@ -2,17 +2,14 @@ use email_address::EmailAddress;
 use rayon::prelude::*;
 use validator::ValidationError;
 
-use crate::{
-    types::validations::ValidationFn,
-    utils::{locale_utils::Messages, validation_utils::add_error},
-};
+use crate::utils::{locale_utils::Messages, validation_utils::add_error};
 
 const MIN_EMAIL_LENGTH: usize = 5;
 const MAX_EMAIL_LENGTH: usize = 254;
 const MIN_DOMAIN_SEGMENT_LENGTH: usize = 2;
 const MIN_TLD_LENGTH: usize = 2;
 
-fn has_valid_length(email: &str, messages: &Messages) -> Result<(), String> {
+fn has_min_length(email: &str, messages: &Messages) -> Result<(), String> {
     let length = email.len();
     if length < MIN_EMAIL_LENGTH {
         return Err(messages.get_validation_message(
@@ -20,6 +17,11 @@ fn has_valid_length(email: &str, messages: &Messages) -> Result<(), String> {
             &format!("Email must be at least {} characters", MIN_EMAIL_LENGTH),
         ));
     }
+    Ok(())
+}
+
+fn has_max_length(email: &str, messages: &Messages) -> Result<(), String> {
+    let length = email.len();
     if length > MAX_EMAIL_LENGTH {
         return Err(messages.get_validation_message(
             "email.too_long",
@@ -188,32 +190,37 @@ fn get_domain(email: &str) -> Option<&str> {
 }
 
 pub fn validate_email(email: &str, messages: &Messages) -> Result<(), ValidationError> {
-    let validations: Vec<ValidationFn> = vec![
-        ValidationFn(has_valid_length),
-        ValidationFn(has_at_and_dot),
-        ValidationFn(is_at_before_dot),
-        ValidationFn(has_no_invalid_chars),
-        ValidationFn(has_no_consecutive_dots),
-        ValidationFn(has_no_leading_or_trailing_dot),
-        ValidationFn(domain_starts_without_dot),
-        ValidationFn(domain_exists),
-        ValidationFn(is_structure_valid_domain),
-        ValidationFn(has_valid_domain_segment_length),
-        ValidationFn(has_valid_tld_format),
+    let validations = vec![
+        has_min_length,
+        has_max_length,
+        has_at_and_dot,
+        is_at_before_dot,
+        has_no_invalid_chars,
+        has_no_consecutive_dots,
+        has_no_leading_or_trailing_dot,
+        domain_starts_without_dot,
+        domain_exists,
+        is_structure_valid_domain,
+        has_valid_domain_segment_length,
+        has_valid_tld_format,
     ];
 
     let errors: Vec<String> = validations
         .par_iter()
-        .filter_map(|validate_fn| (validate_fn.0)(email, messages).err())
+        .filter_map(|validate| validate(email, messages).err())
         .collect();
 
-    if errors.is_empty() {
-        if let Err(msg) = is_overall_format_valid(email, messages) {
-            return Err(add_error("email.invalid", msg, email));
-        }
-    } else {
+    if !errors.is_empty() {
         let concatenated_errors = errors.join(", ");
-        return Err(add_error("email.invalid", concatenated_errors, email));
+        let message = messages.get_validation_message(
+            "email.invalid",
+            &format!("Email is invalid ({})", concatenated_errors),
+        );
+        return Err(add_error("email.invalid", message, email));
+    }
+
+    if let Err(msg) = is_overall_format_valid(email, messages) {
+        return Err(add_error("email.invalid", msg, email));
     }
 
     Ok(())

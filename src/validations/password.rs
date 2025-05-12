@@ -1,10 +1,7 @@
 use rayon::prelude::*;
 use validator::ValidationError;
 
-use crate::{
-    types::validations::ValidationFn,
-    utils::{locale_utils::Messages, validation_utils::add_error},
-};
+use crate::utils::{locale_utils::Messages, validation_utils::add_error};
 
 const MIN_PASSWORD_LENGTH: usize = 8;
 const MAX_PASSWORD_LENGTH: usize = 128;
@@ -88,19 +85,19 @@ fn has_special_char(password: &str, messages: &Messages) -> Result<(), String> {
 }
 
 pub fn validate_password(password: &str, messages: &Messages) -> Result<(), ValidationError> {
-    let validations: Vec<ValidationFn> = vec![
-        ValidationFn(has_min_length),
-        ValidationFn(has_max_length),
-        ValidationFn(has_no_space),
-        ValidationFn(has_uppercase),
-        ValidationFn(has_lowercase),
-        ValidationFn(has_digit),
-        ValidationFn(has_special_char),
+    let validations = vec![
+        has_min_length,
+        has_max_length,
+        has_no_space,
+        has_uppercase,
+        has_lowercase,
+        has_digit,
+        has_special_char,
     ];
 
     let errors: Vec<String> = validations
         .par_iter()
-        .filter_map(|validate_fn| (validate_fn.0)(password, messages).err())
+        .filter_map(|validate_fn| validate_fn(password, messages).err())
         .collect();
 
     if errors.is_empty() {
