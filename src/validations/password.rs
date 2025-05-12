@@ -104,10 +104,6 @@ pub fn validate_password(password: &str, messages: &Messages) -> Result<(), Vali
         Ok(())
     } else {
         let concatenated_errors = errors.join(", ");
-        let default_message = messages.get_validation_message(
-            "password.invalid",
-            &format!("The provided password is invalid ({})", concatenated_errors),
-        );
-        Err(add_error("password.invalid", default_message, password))
+        Err(add_error("password.invalid", concatenated_errors, password))
     }
 }

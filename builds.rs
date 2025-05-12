@@ -2,14 +2,18 @@ use futures::{StreamExt, stream::FuturesUnordered};
 use reqwest::Client;
 use serde_json::{Map, Value, json};
 use std::{
-    collections::BTreeMap,
+    collections::{BTreeMap, HashMap, HashSet},
     fs,
     path::{Path, PathBuf},
+    sync::Arc,
 };
+use tokio::sync::Semaphore;
+use walkdir::WalkDir;
 
 const TARGET_LANGS: [&str; 3] = ["de", "id", "ja"];
 const SOURCE_DIR: &str = "locales/en";
 const OUTPUT_DIR: &str = "locales";
+const MAX_CONCURRENT_TRANSLATIONS: usize = 10;
 
 async fn fetch_translation(
     client: &Client,
@@ -31,7 +35,7 @@ async fn fetch_translation(
         .send()
         .await?;
 
-    let body: serde_json::Value = res.json().await?;
+    let body: Value = res.json().await?;
     Ok(body["translatedText"].as_str().unwrap_or(text).to_string())
 }
 
@@ -40,7 +44,7 @@ fn flatten_json(value: &Value, prefix: String, map: &mut BTreeMap<String, String
         Value::Object(obj) => {
             for (k, v) in obj {
                 let new_prefix = if prefix.is_empty() {
-                    k.to_string()
+                    k.clone()
                 } else {
                     format!("{}.{}", prefix, k)
                 };
@@ -56,11 +60,9 @@ fn flatten_json(value: &Value, prefix: String, map: &mut BTreeMap<String, String
 
 fn unflatten_json(flat: &BTreeMap<String, String>) -> Value {
     let mut root = Map::new();
-
     for (key, val) in flat {
         let parts: Vec<&str> = key.split('.').collect();
         let mut current = &mut root;
-
         for i in 0..parts.len() {
             if i == parts.len() - 1 {
                 current.insert(parts[i].to_string(), Value::String(val.clone()));
@@ -73,79 +75,101 @@ fn unflatten_json(flat: &BTreeMap<String, String>) -> Value {
             }
         }
     }
-
     Value::Object(root)
 }
 
 async fn translate_file(
     client: &Client,
+    semaphore: Arc<Semaphore>,
     file_path: &Path,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let file_content = fs::read_to_string(file_path)?;
     let json: Value = serde_json::from_str(&file_content)?;
     let mut flat_map = BTreeMap::new();
     flatten_json(&json, "".to_string(), &mut flat_map);
 
-    let mut translations: BTreeMap<&str, BTreeMap<String, String>> = TARGET_LANGS
-        .iter()
-        .map(|&lang| (lang, BTreeMap::new()))
-        .collect();
+    let unique_texts: HashSet<String> = flat_map.values().cloned().collect();
+    let mut translations: HashMap<&str, HashMap<String, String>> = HashMap::new();
 
-    let mut futures = FuturesUnordered::new();
+    for &lang in &TARGET_LANGS {
+        let mut text_map = HashMap::new();
+        let mut futures = FuturesUnordered::new();
 
-    for (key, val) in &flat_map {
-        for &lang in &TARGET_LANGS {
+        for text in unique_texts.iter() {
             let client = client.clone();
-            let val = val.clone();
-            let key = key.clone();
+            let text = text.clone();
+            let lang = lang.to_string();
+            let sem = semaphore.clone();
             futures.push(async move {
-                let translated = fetch_translation(&client, &val, lang).await.unwrap_or(val);
-                (lang, key, translated)
+                let _permit = sem.acquire_owned().await.unwrap();
+                let translated = fetch_translation(&client, &text, &lang)
+                    .await
+                    .unwrap_or(text.clone());
+                (text, translated)
             });
         }
-    }
 
-    while let Some((lang, key, val)) = futures.next().await {
-        translations.get_mut(lang).unwrap().insert(key, val);
+        while let Some((orig, trans)) = futures.next().await {
+            text_map.insert(orig, trans);
+        }
+
+        translations.insert(lang, text_map);
     }
 
     for &lang in &TARGET_LANGS {
-        let flat = &translations[lang];
-        let reconstructed = unflatten_json(flat);
+        let mut flat_translated = BTreeMap::new();
+        for (k, v) in &flat_map {
+            let translated = translations[lang].get(v).unwrap_or(v);
+            flat_translated.insert(k.clone(), translated.clone());
+        }
+
+        let reconstructed = unflatten_json(&flat_translated);
         let relative = file_path.strip_prefix(SOURCE_DIR)?;
         let out_path = Path::new(OUTPUT_DIR).join(lang).join(relative);
+
         if let Some(parent) = out_path.parent() {
             fs::create_dir_all(parent)?;
         }
-        fs::write(out_path, serde_json::to_string_pretty(&reconstructed)?)?;
+
+        let new_content = serde_json::to_string_pretty(&reconstructed)?;
+        if fs::read_to_string(&out_path).unwrap_or_default() != new_content {
+            fs::write(out_path, new_content)?;
+        }
     }
 
     Ok(())
 }
 
 fn find_json_files(dir: &str) -> Vec<PathBuf> {
-    let mut files = vec![];
-    for entry in walkdir::WalkDir::new(dir) {
-        let entry = entry.unwrap();
-        if entry.path().is_file()
-            && entry.path().extension().and_then(|s| s.to_str()) == Some("json")
-        {
-            files.push(entry.into_path());
-        }
-    }
-    files
+    WalkDir::new(dir)
+        .into_iter()
+        .filter_map(Result::ok)
+        .filter(|e| {
+            e.path().is_file() && e.path().extension().and_then(|s| s.to_str()) == Some("json")
+        })
+        .map(|e| e.into_path())
+        .collect()
 }
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let client = Client::new();
+    let semaphore = Arc::new(Semaphore::new(MAX_CONCURRENT_TRANSLATIONS));
     let files = find_json_files(SOURCE_DIR);
 
-    for file in files {
-        println!("Translating {:?}", file);
-        translate_file(&client, &file).await?;
-    }
+    let tasks = files.into_iter().map(|file| {
+        let client = client.clone();
+        let semaphore = semaphore.clone();
+        async move {
+            println!("Translating {:?}", file);
+            if let Err(e) = translate_file(&client, semaphore, &file).await {
+                eprintln!("Error translating {:?}: {}", file, e);
+            }
+        }
+    });
 
-    println!("All translations saved to locales/[de,id,ja]/");
+    futures::future::join_all(tasks).await;
+
+    println!("✅ All translations saved to locales/[de,id,ja]/");
     Ok(())
 }

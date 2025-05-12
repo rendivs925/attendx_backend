@@ -205,22 +205,20 @@ pub fn validate_email(email: &str, messages: &Messages) -> Result<(), Validation
         has_valid_tld_format,
     ];
 
-    let errors: Vec<String> = validations
+    let mut errors: Vec<String> = validations
         .par_iter()
         .filter_map(|validate| validate(email, messages).err())
         .collect();
 
-    if !errors.is_empty() {
-        let concatenated_errors = errors.join(", ");
-        let message = messages.get_validation_message(
-            "email.invalid",
-            &format!("Email is invalid ({})", concatenated_errors),
-        );
-        return Err(add_error("email.invalid", message, email));
+    if errors.is_empty() {
+        if let Err(msg) = is_overall_format_valid(email, messages) {
+            errors.push(msg);
+        }
     }
 
-    if let Err(msg) = is_overall_format_valid(email, messages) {
-        return Err(add_error("email.invalid", msg, email));
+    if !errors.is_empty() {
+        let concatenated_errors = errors.join(", ");
+        return Err(add_error("email.invalid", concatenated_errors, email));
     }
 
     Ok(())

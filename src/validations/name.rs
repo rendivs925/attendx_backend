@@ -63,10 +63,7 @@ pub fn validate_name(name: &str, messages: &Messages) -> Result<(), ValidationEr
     if errors.is_empty() {
         Ok(())
     } else {
-        let message = messages.get_validation_message(
-            "name.invalid",
-            &format!("The provided name is invalid ({})", errors.join(", ")),
-        );
-        Err(add_error("name.invalid", message, name))
+        let concatenated_errors = errors.join(", ");
+        Err(add_error("name.invalid", concatenated_errors, name))
     }
 }
